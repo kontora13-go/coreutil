@@ -2,48 +2,87 @@ package appcontext_test
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/kontora13-go/coreutil/appcontext"
-	"github.com/kontora13-go/coreutil/env"
 )
 
-const (
-	ctxKeyValue = "app_value"
-)
-
-func TestValueSetContextValues(t *testing.T) {
-	ctx := context.Background()
-
+func TestContextWithValue(t *testing.T) {
+	var ctx context.Context
 	ctxKeyEnvAppName := "app_name"
+	ctxValEnvAppName := "coreutil"
 	ctxKeyEnvAppZone := "app_zone"
+	ctxValEnvAppZone := "prod"
 
-	ctx = appcontext.SetValue(ctx, ctxKeyEnvAppName, "coreutil")
-	log.Printf("ctx: %v", ctx.Value(ctxKeyValue))
-	c, ok := appcontext.GetValue(ctx, ctxKeyEnvAppName)
-	if !ok {
-		t.Error("нет app_name в context")
+	// WithValue / GetValue
+	ctx = context.Background()
+	ctx = appcontext.WithValue(ctx, map[string]interface{}{
+		ctxKeyEnvAppName: ctxValEnvAppName,
+		ctxKeyEnvAppZone: ctxValEnvAppZone,
+	})
+
+	if c, ok := appcontext.GetValue(ctx, ctxKeyEnvAppName); !ok {
+		t.Errorf("нет %s в context", ctxKeyEnvAppName)
+	} else if c != ctxValEnvAppName {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", ctxValEnvAppName, c)
 	}
-	log.Printf("app_name: %v", c)
-	log.Println("---")
-
-	ctx = appcontext.SetValueIfEmpty(ctx, ctxKeyEnvAppZone, env.ZoneTest)
-	log.Printf("ctx: %v", ctx.Value(ctxKeyValue))
-	z, ok := appcontext.GetValue(ctx, ctxKeyEnvAppZone)
-	if !ok {
-		t.Error("нет app_zone в context")
+	if c, ok := appcontext.GetValue(ctx, ctxKeyEnvAppZone); !ok {
+		t.Errorf("нет %s в context", ctxKeyEnvAppZone)
+	} else if c != ctxValEnvAppZone {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", ctxValEnvAppZone, c)
 	}
-	log.Printf("app_zone: %v", z)
-	log.Println("---")
+}
 
-	ctx = appcontext.SetValueIfEmpty(ctx, ctxKeyEnvAppName, "coreutil1")
-	log.Printf("ctx: %v", ctx.Value(ctxKeyValue))
-	c, ok = appcontext.GetValue(ctx, ctxKeyEnvAppName)
-	if !ok {
-		t.Error("нет app_name в context")
+func TestContextSetValue(t *testing.T) {
+	var ctx context.Context
+	ctxKeyEnvAppName := "app_name"
+	ctxValEnvAppName := "coreutil"
+	ctxKeyEnvAppZone := "app_zone"
+	ctxValEnvAppZone := "app_zone"
+
+	// SetValue / GetValue
+	ctx = context.Background()
+	ctx = appcontext.WithValue(ctx, map[string]interface{}{
+		ctxKeyEnvAppName: ctxValEnvAppName + "_test",
+	})
+	ctx = appcontext.SetValue(ctx, ctxKeyEnvAppName, ctxValEnvAppName)
+	ctx = appcontext.SetValue(ctx, ctxKeyEnvAppZone, ctxValEnvAppZone)
+
+	if c, ok := appcontext.GetValue(ctx, ctxKeyEnvAppName); !ok {
+		t.Errorf("нет %s в context", ctxKeyEnvAppName)
+	} else if c != ctxValEnvAppName {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", ctxValEnvAppName, c)
 	}
-	log.Printf("app_name: %v", c)
-	log.Println("---")
+	if c, ok := appcontext.GetValue(ctx, ctxValEnvAppZone); !ok {
+		t.Errorf("нет %s в context", ctxKeyEnvAppZone)
+	} else if c != ctxValEnvAppZone {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", ctxValEnvAppZone, c)
+	}
+}
 
+func TestContextSetValueIfEmpty(t *testing.T) {
+	var ctx context.Context
+	ctxKeyEnvAppName := "app_name"
+	ctxValEnvAppName := "coreutil"
+	ctxKeyEnvAppZone := "app_zone"
+	ctxValEnvAppZone := "app_zone"
+
+	// SetValueIfEmpty / GetValue
+	ctx = context.Background()
+	ctx = appcontext.WithValue(ctx, map[string]interface{}{
+		ctxKeyEnvAppName: ctxValEnvAppName,
+	})
+	ctx = appcontext.SetValueIfEmpty(ctx, ctxKeyEnvAppName, ctxValEnvAppName+"_test")
+	ctx = appcontext.SetValueIfEmpty(ctx, ctxKeyEnvAppZone, ctxValEnvAppZone)
+
+	if c, ok := appcontext.GetValue(ctx, ctxKeyEnvAppName); !ok {
+		t.Errorf("нет %s в context", ctxKeyEnvAppName)
+	} else if c != ctxValEnvAppName {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", ctxValEnvAppName, c)
+	}
+	if c, ok := appcontext.GetValue(ctx, ctxValEnvAppZone); !ok {
+		t.Errorf("нет %s в context", ctxKeyEnvAppZone)
+	} else if c != ctxValEnvAppZone {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", ctxValEnvAppZone, c)
+	}
 }

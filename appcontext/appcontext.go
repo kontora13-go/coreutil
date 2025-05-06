@@ -1,4 +1,4 @@
-// Copyright 2024 Kontora13. All rights reserved.
+// Copyright 2024-2025 Kontora13. All rights reserved.
 // Licensed under the Apache License, Version 2.0
 
 // Пакет работы с контекстом приложения.
@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ctxKeyValue = "app_value"
+	ctxKeyValue = "app_value" // ключ хранилища значений
 )
 
 // DefaultAppCtxValueCount - стартовая ёмкость хранилища значений
@@ -102,7 +102,7 @@ func SetValueIfEmpty(ctx context.Context, key string, val any) context.Context {
 		})
 	}
 
-	if !appCtx.Exist(key) {
+	if !appCtx.IsExist(key) {
 		appCtx.Add(key, val)
 	}
 
