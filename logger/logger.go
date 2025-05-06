@@ -1,4 +1,4 @@
-// Copyright 2024 Kontora13. All rights reserved.
+// Copyright 2024-2025 Kontora13. All rights reserved.
 // Licensed under the Apache License, Version 2.0
 
 // Описание лвсех возможных логгеров, используемых в приложении
@@ -9,10 +9,11 @@ package logger
 type Type string
 
 const (
-	Runtime      Type = "runtime"       // запись событий в runtime
-	HttpClient   Type = "http_client"   // запись событий http-клиента
-	HttpServer   Type = "http_server"   // запись событий http-сервера
-	EventManager Type = "event_manager" // запись событий messege broker
+	Runtime       Type = "runtime"        // запись событий в runtime
+	HttpClient    Type = "http_client"    // запись событий http-клиента
+	HttpServer    Type = "http_server"    // запись событий http-сервера
+	MessageBroker Type = "message_broker" // запись событий messege broker
+	EventManager  Type = "event_manager"  // запись событий event manager
 )
 
 func (l Type) String() string {
