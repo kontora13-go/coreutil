@@ -1,4 +1,4 @@
-// Copyright 2024 Kontora13. All rights reserved.
+// Copyright 2024-2025 Kontora13. All rights reserved.
 // Licensed under the Apache License, Version 2.0
 
 // Feature-флаги для включения функций
@@ -108,7 +108,7 @@ func SetFeatureIfEmpty(ctx context.Context, key string, val bool) context.Contex
 		})
 	}
 
-	if !appCtx.Exist(key) {
+	if !appCtx.IsExist(key) {
 		appCtx.Add(key, val)
 	}
 

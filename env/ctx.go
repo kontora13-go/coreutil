@@ -1,4 +1,4 @@
-// Copyright 2024 Kontora13. All rights reserved.
+// Copyright 2024-2025 Kontora13. All rights reserved.
 // Licensed under the Apache License, Version 2.0
 
 // Работа с env-данными с использованием контекста приложения
@@ -7,28 +7,25 @@ package env
 
 import (
 	"context"
-
-	"github.com/kontora13-go/coreutil/appcontext"
 )
 
 const (
-	ctxKeyEnv            = "app_env"
-	ctxKeyEnvAppZone     = "app_zone"
-	ctxKeyEnvAppName     = "app_name"
-	ctxKeyEnvAppVersion  = "app_version"
-	ctxKeyEnvAppInstance = "app_instance"
+	// Ключи для хранения данных env-значений в context приложения
+	ctxKeyEnv = "app_env"
 )
 
-type appCtxValue = appcontext.AppCtxValue
+type appEnv struct {
+	appZone     Zone
+	appName     string
+	appVersion  Version
+	appInstance string
+}
 
-// newEnvCtxValue - создание пустого набора env-значений
-func newEnvCtxValue() appCtxValue {
-	return appcontext.NewAppCtxValue(map[string]any{
-		ctxKeyEnvAppZone:     ZoneNotDefined,
-		ctxKeyEnvAppName:     "",
-		ctxKeyEnvAppVersion:  EmptyVersion,
-		ctxKeyEnvAppInstance: "",
-	})
+func newAppEnv() *appEnv {
+	return &appEnv{
+		appZone:    ZoneNotDefined,
+		appVersion: EmptyVersion,
+	}
 }
 
 // WithEnv - получение context с env приложения
@@ -37,23 +34,23 @@ func WithEnv(
 	appZone Zone, appName string, appVersion Version, appInstance string,
 ) context.Context {
 
-	var appCtx appCtxValue
+	var appCtx *appEnv
 	v := ctx.Value(ctxKeyEnv)
 	if v != nil {
 		var ok bool
-		if appCtx, ok = v.(appCtxValue); !ok {
-			appCtx = newEnvCtxValue()
+		if appCtx, ok = v.(*appEnv); !ok {
+			appCtx = newAppEnv()
 			ctx = context.WithValue(ctx, ctxKeyEnv, appCtx)
 		}
 	} else {
-		appCtx = newEnvCtxValue()
+		appCtx = newAppEnv()
 		ctx = context.WithValue(ctx, ctxKeyEnv, appCtx)
 	}
 
-	appCtx.Add(ctxKeyEnvAppZone, appZone)
-	appCtx.Add(ctxKeyEnvAppName, appName)
-	appCtx.Add(ctxKeyEnvAppVersion, appVersion)
-	appCtx.Add(ctxKeyEnvAppInstance, appInstance)
+	appCtx.appZone = appZone
+	appCtx.appName = appName
+	appCtx.appVersion = appVersion
+	appCtx.appInstance = appInstance
 
 	return ctx
 }
@@ -65,16 +62,12 @@ func AppZone(ctx context.Context) (val Zone, ok bool) {
 		return ZoneNotDefined, false
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return ZoneNotDefined, false
 	}
 
-	v := appCtx.Value(ctxKeyEnvAppZone)
-	val, ok = v.(Zone)
-	if !ok {
-		return ZoneNotDefined, false
-	}
+	val = appCtx.appZone
 	if err := val.IsValid(); err != nil {
 		return ZoneNotDefined, false
 	}
@@ -89,12 +82,12 @@ func SetAppZone(ctx context.Context, val Zone) context.Context {
 		return WithEnv(ctx, val, "", EmptyVersion, "")
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return WithEnv(ctx, val, "", EmptyVersion, "")
 	}
 
-	appCtx.Add(ctxKeyEnvAppZone, val)
+	appCtx.appZone = val
 
 	return ctx
 }
@@ -106,13 +99,12 @@ func AppName(ctx context.Context) (val string, ok bool) {
 		return
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return
 	}
 
-	v := appCtx.Value(ctxKeyEnvAppName)
-	val, ok = v.(string)
+	val = appCtx.appName
 
 	return
 }
@@ -124,12 +116,12 @@ func SetAppName(ctx context.Context, val string) context.Context {
 		return WithEnv(ctx, ZoneNotDefined, val, EmptyVersion, "")
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return WithEnv(ctx, ZoneNotDefined, val, EmptyVersion, "")
 	}
 
-	appCtx.Add(ctxKeyEnvAppName, val)
+	appCtx.appName = val
 
 	return ctx
 }
@@ -141,13 +133,12 @@ func AppVersion(ctx context.Context) (val Version, ok bool) {
 		return
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return
 	}
 
-	v := appCtx.Value(ctxKeyEnvAppVersion)
-	val, ok = v.(Version)
+	val = appCtx.appVersion
 
 	return
 }
@@ -159,12 +150,12 @@ func SetAppVersion(ctx context.Context, val Version) context.Context {
 		return WithEnv(ctx, ZoneNotDefined, "", val, "")
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return WithEnv(ctx, ZoneNotDefined, "", val, "")
 	}
 
-	appCtx.Add(ctxKeyEnvAppVersion, val)
+	appCtx.appVersion = val
 
 	return ctx
 }
@@ -175,13 +166,12 @@ func AppInstance(ctx context.Context) (val string, ok bool) {
 		return
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return
 	}
 
-	v := appCtx.Value(ctxKeyEnvAppInstance)
-	val, ok = v.(string)
+	val = appCtx.appInstance
 
 	return
 }
@@ -192,12 +182,12 @@ func SetAppInstance(ctx context.Context, val string) context.Context {
 		return WithEnv(ctx, ZoneNotDefined, "", EmptyVersion, val)
 	}
 
-	appCtx, ok := c.(appCtxValue)
+	appCtx, ok := c.(*appEnv)
 	if !ok {
 		return WithEnv(ctx, ZoneNotDefined, "", EmptyVersion, val)
 	}
 
-	appCtx.Add(ctxKeyEnvAppInstance, val)
+	appCtx.appInstance = val
 
 	return ctx
 }

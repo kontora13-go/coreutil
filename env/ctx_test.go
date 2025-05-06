@@ -12,94 +12,142 @@ const (
 	ctxKeyEnv = "app_env"
 )
 
+var (
+	appZone       = env.ZoneTest
+	appName       = "coreutil"
+	appVersion, _ = env.NewVersion("0.0.1")
+	appInstance   = "local"
+)
+
+// checkEnv проверяет значения в context на соответствие установленным в переменных
+func checkEnv(ctx context.Context, t *testing.T) {
+	if v, ok := env.AppZone(ctx); !ok {
+		t.Errorf("нет значения env.Zone в context")
+	} else if v != appZone {
+		t.Errorf("ожидаемое значение ctx.Value(appZone) = %v, получено: %v", appZone, v)
+	}
+	if v, ok := env.AppName(ctx); !ok {
+		t.Errorf("нет значения env.Name в context")
+	} else if v != appName {
+		t.Errorf("ожидаемое значение ctx.Value(appName) = %v, получено: %v", appName, v)
+	}
+	if v, ok := env.AppVersion(ctx); !ok {
+		t.Errorf("нет значения env.Version в context")
+	} else if v.String() != appVersion.String() {
+		t.Errorf("ожидаемое значение ctx.Value(appVersion) = %v, получено: %v", appVersion, v)
+	}
+	if v, ok := env.AppInstance(ctx); !ok {
+		t.Errorf("нет значения env.Instance в context")
+	} else if v != appInstance {
+		t.Errorf("ожидаемое значение ctx.Value(appInstance) = %v, получено: %v", appInstance, v)
+	}
+}
+
 func TestEnvMultiContext(t *testing.T) {
 	ctx := context.Background()
 
-	v, err := env.NewVersion("0.0.1")
-	if err != nil {
-		t.Error(err)
-	}
+	// Устанавливаем значения в context
+	ctx = env.WithEnv(ctx, appZone, appName, appVersion, appInstance)
+	log.Printf("ctx: %v", ctx.Value(ctxKeyEnv))
+	// Проверяем значения в context
+	checkEnv(ctx, t)
 
-	ctx1 := env.WithEnv(ctx,
-		env.ZoneTest, "coreutil", v, "local")
-
-	log.Printf("ctx1: %v", ctx1.Value(ctxKeyEnv))
-	log.Println("---")
-
-	ctx2 := context.WithValue(ctx1, "test2", 2)
-
-	log.Printf("ctx1: %v + %v", ctx1.Value(ctxKeyEnv), ctx1.Value("test2"))
-	log.Printf("ctx2: %v + %v", ctx2.Value(ctxKeyEnv), ctx2.Value("test2"))
+	// Создаем новый контекст с новыми значениями
+	ctx = context.WithValue(ctx, "test", 2)
+	log.Printf("ctx: %v + %v", ctx.Value(ctxKeyEnv), ctx.Value("test"))
+	// Проверяем значения в context
+	checkEnv(ctx, t)
 
 }
 
 func TestEnvDoubleContext(t *testing.T) {
 	ctx := context.Background()
 
-	v, err := env.NewVersion("0.0.1")
-	if err != nil {
-		t.Error(err)
-	}
-
-	ctx1 := env.WithEnv(ctx,
-		env.ZoneTest, "coreutil", v, "local")
-
+	// Устанавливаем значения в context
+	ctx1 := env.WithEnv(ctx, appZone, appName, appVersion, appInstance)
 	log.Printf("ctx1: %v", ctx1.Value(ctxKeyEnv))
 	log.Println("---")
+	// Проверяем значения в context
+	checkEnv(ctx1, t)
 
-	v, err = env.NewVersion("0.0.2")
-	if err != nil {
-		t.Error(err)
-	}
+	appVersion, _ = env.NewVersion("0.0.2")
 
-	ctx2 := context.WithValue(ctx1, "test2", 2)
-	ctx2 = env.WithEnv(ctx2,
-		env.ZoneTest, "coreutil1", v, "local")
-
-	log.Printf("ctx1: %v + %v", ctx1.Value(ctxKeyEnv), ctx1.Value("test2"))
-	log.Printf("ctx2: %v + %v", ctx2.Value(ctxKeyEnv), ctx2.Value("test2"))
+	ctx2 := env.WithEnv(ctx, appZone, appName, appVersion, appInstance)
+	log.Printf("ctx1: %v", ctx1.Value(ctxKeyEnv))
+	log.Printf("ctx2: %v", ctx2.Value(ctxKeyEnv))
+	log.Println("---")
+	// Проверяем значения в context
+	checkEnv(ctx2, t)
 }
 
 func TestEnvSetContextValues(t *testing.T) {
 	ctx := context.Background()
 
-	ctx = env.SetAppName(ctx, "coreutil")
+	ctx = env.SetAppName(ctx, appName)
 	log.Printf("ctx: %v", ctx.Value(ctxKeyEnv))
-	c, ok := env.AppName(ctx)
-	if !ok {
-		t.Error("нет app_name в context")
+	if v, ok := env.AppName(ctx); !ok {
+		t.Error("нет AppName в context")
+	} else if v != appName {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", appName, v)
+	} else {
+		log.Printf("app_name: %v", v)
+
 	}
-	log.Printf("app_name: %v", c)
 	log.Println("---")
 
-	ctx = env.SetAppZone(ctx, env.ZoneTest)
+	ctx = env.SetAppZone(ctx, appZone)
 	log.Printf("ctx: %v", ctx.Value(ctxKeyEnv))
-	z, ok := env.AppZone(ctx)
-	if !ok {
-		t.Error("нет app_zone в context")
+	if v, ok := env.AppZone(ctx); !ok {
+		t.Error("нет AppName в context")
+	} else if v != appZone {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", appZone, v)
+	} else {
+		log.Printf("app_zone: %v", v)
+
 	}
-	log.Printf("app_zone: %v", z.String())
 	log.Println("---")
 
-	ctx = env.SetAppInstance(ctx, "local")
+	ctx = env.SetAppInstance(ctx, appInstance)
 	log.Printf("ctx: %v", ctx.Value(ctxKeyEnv))
-	c, ok = env.AppInstance(ctx)
-	if !ok {
-		t.Error("нет app_instance в context")
+	if v, ok := env.AppInstance(ctx); !ok {
+		t.Error("нет AppName в context")
+	} else if v != appInstance {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", appInstance, v)
+	} else {
+		log.Printf("app_instance: %v", v)
+
 	}
-	log.Printf("app_instance: %v", c)
 	log.Println("---")
 
-	v, err := env.NewVersion("0.0.1")
-	if err != nil {
-		t.Error(err)
-	}
-	ctx = env.SetAppVersion(ctx, v)
+	ctx = env.SetAppVersion(ctx, appVersion)
 	log.Printf("ctx: %v", ctx.Value(ctxKeyEnv))
-	v, ok = env.AppVersion(ctx)
-	if !ok {
-		t.Error("нет app_zone в context")
+	if v, ok := env.AppVersion(ctx); !ok {
+		t.Error("нет AppName в context")
+	} else if v.String() != appVersion.String() {
+		t.Errorf("ожидаемое значение: %v, фактическое значение: %v", appVersion, v)
+	} else {
+		log.Printf("app_version: %v", v)
+
 	}
-	log.Printf("app_version: %v", v.String())
 	log.Println("---")
+}
+
+func BenchmarkEnvSetContextValues(b *testing.B) {
+	ctx := env.WithEnv(context.Background(), appZone, appName, appVersion, appInstance)
+	for i := 0; i < b.N; i++ {
+		ctx = env.SetAppName(ctx, appName)
+		ctx = env.SetAppZone(ctx, appZone)
+		ctx = env.SetAppInstance(ctx, appInstance)
+		ctx = env.SetAppVersion(ctx, appVersion)
+	}
+}
+
+func BenchmarkEnvGetContextValues(b *testing.B) {
+	ctx := env.WithEnv(context.Background(), appZone, appName, appVersion, appInstance)
+	for i := 0; i < b.N; i++ {
+		_, _ = env.AppName(ctx)
+		_, _ = env.AppZone(ctx)
+		_, _ = env.AppInstance(ctx)
+		_, _ = env.AppVersion(ctx)
+	}
 }

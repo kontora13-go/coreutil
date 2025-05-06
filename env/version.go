@@ -1,4 +1,4 @@
-// Copyright 2024 Kontora13. All rights reserved.
+// Copyright 2024-2025 Kontora13. All rights reserved.
 // Licensed under the Apache License, Version 2.0
 
 // Работа с версией приложения
@@ -12,16 +12,16 @@ import (
 )
 
 // EmptyVersion - "пустая" версия
-var EmptyVersion = Version{v: version.Version{}}
+var EmptyVersion = Version{version.Version{}}
 
 // Version - объект для хранения версии приложения
 type Version struct {
-	v version.Version
+	version.Version
 }
 
 // String - строковое представление версии
-func (v Version) String() string {
-	return v.v.String()
+func (v *Version) String() string {
+	return v.Version.String()
 }
 
 // NewVersion - парсинг версии из строки
@@ -32,6 +32,6 @@ func NewVersion(s string) (Version, error) {
 		return EmptyVersion, fmt.Errorf("[environment] некорректная версия приложения: %s", s)
 	}
 	return Version{
-		v: *v,
+		Version: *v,
 	}, nil
 }
