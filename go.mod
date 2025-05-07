@@ -1,6 +1,6 @@
 module github.com/kontora13-go/coreutil
 
-go 1.23.2
+go 1.24.3
 
 require (
 	github.com/google/uuid v1.6.0
