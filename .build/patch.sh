@@ -3,7 +3,7 @@
 echo "Создание патча..."
 
 # Читаем версию из файла
-file="../version"
+file="./version"
 version=$(head -1 "$file") # = [version](Get-Content $file | Select -First 1)
 if [[ "$version" -eq "" ]]; then
   version="1.0.0"
