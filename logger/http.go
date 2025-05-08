@@ -20,6 +20,7 @@ type HttpClientData struct {
 	Response   HttpResponseData `json:"response"`
 }
 
+// NewHttpClientData - создание нового объекта для логгирования сообщений http-клиента
 func NewHttpClientData() *HttpClientData {
 	return &HttpClientData{
 		Request:  HttpRequestData{},
@@ -41,6 +42,7 @@ type HttpServerData struct {
 	Response   HttpResponseData `json:"response"`
 }
 
+// NewHttpServerData - создание нового объекта для логгирования сообщений http-сервера
 func NewHttpServerData() *HttpServerData {
 	return &HttpServerData{
 		Request:  HttpRequestData{},

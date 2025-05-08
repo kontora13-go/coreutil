@@ -50,6 +50,13 @@ type HttpServerLogger interface {
 	Close() (err error)
 }
 
+// MessageBrokerLogger - логгер событий Message Broker
+type MessageBrokerLogger interface {
+	MessageBrokerAction(msg string, data *MessageBrokerData, fields ...map[string]any)
+
+	Close() (err error)
+}
+
 // EventLogger - логгер событий Message Broker
 type EventLogger interface {
 	IncomingEvent(msg string, data any, fields ...map[string]any)
